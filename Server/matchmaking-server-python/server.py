@@ -2,13 +2,25 @@ import socket
 import six.moves.configparser
 import _thread
 import bcolors
+import os
 
 class server(object) :
-    PORT = 25570
-    
+    CONFIG_PATH = '~/ffgmsconfig.conf'
+    DEFAULT_CONF = '''[settings]
+# The port that the server should run on
+port: 24713 
+# The name of your game
+game: Overpowered'''
+
     def start(self):
         self.CONFIG = six.moves.configparser.ConfigParser()
-        self.CONFIG.read('settings.conf')
+        if(not self.CONFIG.read([os.path.expanduser(server.CONFIG_PATH)])):
+            print(bcolors.bcolors.FAIL + "No config file in {}".format(os.path.expanduser(server.CONFIG_PATH)) + bcolors.bcolors.ENDC)
+            print("Creating config file in {}".format(os.path.expanduser(server.CONFIG_PATH)))
+            file = open(os.path.expanduser(server.CONFIG_PATH), "w")
+            file.write(server.DEFAULT_CONF)
+            file.close()
+            self.CONFIG.read([os.path.expanduser(server.CONFIG_PATH)])
         self.SERVERS = []
         try:
             self.PORT = int(self.CONFIG.get('settings', 'port'))
