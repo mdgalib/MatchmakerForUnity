@@ -8,4 +8,5 @@ Make sure the configuration file has been set up before starting'''
     print(startmessage)
     s = server.server()
     s.start()
+
 start()

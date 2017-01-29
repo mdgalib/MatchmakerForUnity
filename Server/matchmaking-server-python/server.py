@@ -1,6 +1,7 @@
 import socket
 import six.moves.configparser
 import _thread
+import bcolors
 
 class server(object) :
     PORT = 25570
@@ -13,11 +14,11 @@ class server(object) :
             self.PORT = int(self.CONFIG.get('settings', 'port'))
             self.GAME = self.CONFIG.get('settings', 'game')
         except six.moves.configparser.NoOptionError as error:
-            print('Config file at settings.conf not configured correctly.')
+            print(bcolors.bcolors.FAIL + 'Config file at settings.conf not configured correctly.' + bcolors.bcolors.ENDC)
             print(error)
             return
         
-        print('Starting {} matchmaking server on port {}'.format(self.GAME, self.PORT))
+        print(bcolors.bcolors.BOLD + 'Starting {} matchmaking server on port {}'.format(self.GAME, self.PORT) + bcolors.bcolors.ENDC)
 
         self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serversocket.bind((socket.gethostname(), self.PORT))
@@ -33,7 +34,7 @@ class server(object) :
         self.t = _thread.start_new_thread(self.client_thread, (clientsocket, address, ))
 
     def client_thread(self, clientSocket, Address):
-        print("Player connected from {}".format(Address[0]))
+        print(bcolors.bcolors.OKGREEN + "Player connected from {}".format(Address[0]) + bcolors.bcolors.ENDC)
         request = clientSocket.recv(1024).decode('utf-8').split(';')
         print('Recieved request {}'.format(request))
         if(request[0] == 'send'):
@@ -44,7 +45,7 @@ class server(object) :
         elif(request[0] == 'get'):
             if(len(self.SERVERS) == 0):
                 # This means that there are no servers on the list
-                print('No servers...')
+                print(bcolors.bcolors.WARNING + 'No servers...' + bcolors.bcolors.ENDC)
                 clientSocket.send(b'none')
             else:
                 # This means there are servers on the list
@@ -65,7 +66,7 @@ class server(object) :
                         self.SERVERS.pop(index)
                         index -= 1
                     index += 1
-                print('cleared {} occurences of {}'.format(deleted, adrs))
+                print(bcolors.bcolors.OKGREEN + 'cleared {} occurences of {}'.format(deleted, adrs) + bcolors.bcolors.ENDC)
         elif(request[0] == 'status'):
             clientSocket.send(b'yes')
         clientSocket.close()

@@ -21,6 +21,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="bcolors.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="matchmaking_server_python.py" />
     <Compile Include="server.py">
       <SubType>Code</SubType>
