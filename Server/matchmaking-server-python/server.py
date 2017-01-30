@@ -33,7 +33,7 @@ game: Overpowered'''
         print(bcolors.bcolors.BOLD + 'Starting {} matchmaking server on port {}'.format(self.GAME, self.PORT) + bcolors.bcolors.ENDC)
 
         self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.serversocket.bind((socket.gethostname(), self.PORT))
+        self.serversocket.bind(('0.0.0.0', self.PORT))
         self.serversocket.listen(5)
 
         while 1:
@@ -47,23 +47,31 @@ game: Overpowered'''
 
     def client_thread(self, clientSocket, Address):
         print(bcolors.bcolors.OKGREEN + "Player connected from {}".format(Address[0]) + bcolors.bcolors.ENDC)
-        request = clientSocket.recv(1024).decode('utf-8').split(';')
+        request = clientSocket.recv(5)
         print('Recieved request {}'.format(request))
-        if(request[0] == 'send'):
+        if(request[0] == 4):
+            print('Recieved send request')
             # This request is when the client wants to register their game
             self.SERVERS.append(Address[0])
             print('Added address {} to the index'.format(Address[0]))
-            clientSocket.send(b'done')
-        elif(request[0] == 'get'):
+            clientSocket.send(b"\x01\x00\x00\x00\x00")
+        elif(request[0] == 3):
+            print('Recieved get request')
             if(len(self.SERVERS) == 0):
                 # This means that there are no servers on the list
                 print(bcolors.bcolors.WARNING + 'No servers...' + bcolors.bcolors.ENDC)
-                clientSocket.send(b'none')
+                clientSocket.send(b"\x00\x00\x00\x00\x00")
             else:
                 # This means there are servers on the list
                 # Sends back the address of the first server on the list
-                clientSocket.send(self.SERVERS[0].encode('utf-8'))
-        elif(request[0] == 'full'):
+                ipstr = self.SERVERS[0].split('.')
+                ip = []
+                for i in ipstr:
+                    ip.append(bytes([int(i)]))
+
+                clientSocket.send(b"\x01"+ip)
+        elif(request[0] == 5):
+            print('Recieved clear request')
             # This means that the server should be removed from the list
             if(len(self.SERVERS)>0):
                 if(request[1] == '\r\n'):
@@ -79,7 +87,10 @@ game: Overpowered'''
                         index -= 1
                     index += 1
                 print(bcolors.bcolors.OKGREEN + 'cleared {} occurences of {}'.format(deleted, adrs) + bcolors.bcolors.ENDC)
-        elif(request[0] == 'status'):
-            clientSocket.send(b'yes')
-        clientSocket.close()
+        elif(request[0] == 2):
+            print('Recieved status request')
+            clientSocket.send(b"\x01\x00\x00\x00\x00")
+        if(clientSocket.recv(5)[0] == 1):
+            clientSocket.close()
+            print('Socket closed.')
         
