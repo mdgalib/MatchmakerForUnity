@@ -3,7 +3,8 @@ import six.moves.configparser
 import _thread
 import bcolors
 import os
-
+import _struct
+import time
 class server(object) :
     CONFIG_PATH = '~/ffgmsconfig.conf'
     DEFAULT_CONF = '''[settings]
@@ -55,6 +56,7 @@ game: Overpowered'''
             self.SERVERS.append(Address[0])
             print('Added address {} to the index'.format(Address[0]))
             clientSocket.send(b"\x01\x00\x00\x00\x00")
+
         elif(request[0] == 3):
             print('Recieved get request')
             if(len(self.SERVERS) == 0):
@@ -65,11 +67,12 @@ game: Overpowered'''
                 # This means there are servers on the list
                 # Sends back the address of the first server on the list
                 ipstr = self.SERVERS[0].split('.')
-                ip = []
+                ip = [1]
                 for i in ipstr:
-                    ip.append(bytes([int(i)]))
+                    ip.append(int(i))
+                ipbytes = _struct.pack('BBBBB', ip[0], ip[1], ip[2], ip[3], ip[4])
+                clientSocket.send(ipbytes)
 
-                clientSocket.send(b"\x01"+ip)
         elif(request[0] == 5):
             print('Recieved clear request')
             # This means that the server should be removed from the list
@@ -87,10 +90,13 @@ game: Overpowered'''
                         index -= 1
                     index += 1
                 print(bcolors.bcolors.OKGREEN + 'cleared {} occurences of {}'.format(deleted, adrs) + bcolors.bcolors.ENDC)
+
         elif(request[0] == 2):
             print('Recieved status request')
-            clientSocket.send(b"\x01\x00\x00\x00\x00")
-        if(clientSocket.recv(5)[0] == 1):
-            clientSocket.close()
-            print('Socket closed.')
-        
+            clientSocket.sendall(b"\x01\x00\x00\x00\x00")
+        else:
+            print('Invalid command.')
+        print('Sent response')
+        clientSocket.close()
+        print('Closing thread')
+        return
