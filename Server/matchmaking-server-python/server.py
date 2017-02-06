@@ -77,10 +77,7 @@ game: Overpowered'''
             print('Recieved clear request')
             # This means that the server should be removed from the list
             if(len(self.SERVERS)>0):
-                if(request[1] == '\r\n'):
-                    adrs = Address[0]
-                else:
-                    adrs = request[1]
+                adrs = Address[0]
                 index = 0
                 deleted = 0
                 while(index < len(self.SERVERS)):
